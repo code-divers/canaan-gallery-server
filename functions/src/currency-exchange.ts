@@ -25,8 +25,8 @@ export class CurrencyExchange {
 
     constructor(){
         this.db = admin.firestore();
-        this.loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
-        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
+        this.loginId = functions.config().comax ? functions.config().comax.loginid : '';
+        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
     }
 
     async syncCurrencies(){

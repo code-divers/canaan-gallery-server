@@ -80,8 +80,8 @@ export class ComaxItems{
     }
 
     getItems(){
-        const loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
-        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
+        const loginId = functions.config().comax ? functions.config().comax.loginid : '';
+        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
 
         const operation = `https://ws.comax.co.il/Comax_WebServices/Items_Service.asmx/GetAllItemsDetailsPlusPriceListID?StoreID=3&PriceListID=1&LoginID=${loginId}&LoginPassword=${loginPassword}`;
         

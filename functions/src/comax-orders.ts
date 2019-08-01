@@ -33,8 +33,8 @@ export interface IOrderItem {
 export class ComaxOrders {
 
     setOrder(order: IOrder){
-        const loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
-        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
+        const loginId = functions.config().comax ? functions.config().comax.loginid : '';
+        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
 
         const params = {
             CustomerID: order.customer.id,
