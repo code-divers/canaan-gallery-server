@@ -5,11 +5,14 @@ import * as parser from 'xml2json';
 import * as querystring from 'querystring';
 import { ComaxUtils } from './comax-utils';
 import { ICurrency, CurrencyExchange } from './currency-exchange';
+// import { Timestamp } from '@google-cloud/firestore';
 
 export interface ICustomer{
     id: string;
     name: string;
     address: string;
+    street: string,
+    house: string,
     city: string | null;
     country: string | null;
     state?: string;
@@ -18,6 +21,7 @@ export interface ICustomer{
     email: string;
     currency: string;
     isExport: boolean;
+    lastUpdate: admin.firestore.Timestamp;
 }
 
 export interface IComaxCustomer{
@@ -65,13 +69,16 @@ export class ComaxCustomers{
                     id: comaxCustomer.ID.toString(),
                     name: ComaxUtils.formatComaxValue(comaxCustomer.Name),
                     address: ComaxUtils.formatComaxValue(comaxCustomer.Street),
+                    street: ComaxUtils.formatComaxValue(comaxCustomer.Street),
+                    house: '',
                     city: this.interprateComaxCity(comaxCustomer),
                     country: this.interprateComaxCountry(comaxCustomer),
                     zipcode: ComaxUtils.formatComaxValue(comaxCustomer.Zip),
                     phone: this.interprateComaxPhone(comaxCustomer),
                     email: ComaxUtils.formatComaxValue(comaxCustomer.Email),
                     currency: this.interprateComaxCurrency(comaxCustomer, currencies),
-                    isExport: ComaxUtils.interprateComaxBoolean(comaxCustomer.ExportCustomer)
+                    isExport: ComaxUtils.interprateComaxBoolean(comaxCustomer.ExportCustomer),
+                    lastUpdate: admin.firestore.Timestamp.fromDate(new Date())
                 };
                 return customer;   
             })
@@ -146,6 +153,7 @@ export class ComaxCustomers{
                 object: true
             });
             customer.id = parsedResult.ClsCustomers.ID;
+            customer.lastUpdate = admin.firestore.Timestamp.fromDate(new Date())
             return this.db.collection('customers').doc(customer.id).set(customer).then(()=>{
                 return customer;
             });

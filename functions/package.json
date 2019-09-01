@@ -20,6 +20,7 @@
     "@types/xml2json": "^0.10.0",
     "firebase-admin": "~7.0.0",
     "firebase-functions": "^2.3.0",
+    "googleapis": "^39.2.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "xml2json": "^0.11.2"

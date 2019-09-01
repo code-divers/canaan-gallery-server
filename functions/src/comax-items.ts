@@ -4,6 +4,8 @@ import * as rp from 'request-promise';
 import * as parser from 'xml2json';
 import { ComaxUtils } from './comax-utils';
 
+const STOREID = 2;
+const PRICELISTID = 1;
 
 export interface IProduct{
     id: string;
@@ -38,16 +40,12 @@ export class ComaxItems{
         const itemsJson: any = parser.toJson(itemsXml,{
             object: true
         });
-        const items =  itemsJson.ArrayOfClsItems.ClsItems;
-        const groups: IProductGroup[] = this.discoverGroups(items);
-        console.log(groups);
+        const items: any[] =  itemsJson.ArrayOfClsItems.ClsItems;
+        const sample = items.find(item => {
+            return item.ID === '11076';
+        })
+        console.log(sample);
         let batch = this.db.batch();
-        for(const groupObj of groups){
-            const groupRef = this.db.collection('products-group').doc(groupObj.id);
-            batch.set(groupRef, groupObj); 
-        }
-        await batch.commit();
-        console.log('commited %s groups', groups.length);
 
         let i=0;
         const j=items.length;
@@ -72,7 +70,7 @@ export class ComaxItems{
                     batch.set(itemRef, itemObj);
                 }
             }
-            //await batch.commit();
+            await batch.commit();
             console.log('handled %s items out of %s', i+chunk, items.length);
         }
 
@@ -80,10 +78,10 @@ export class ComaxItems{
     }
 
     getItems(){
-        const loginId = functions.config().comax ? functions.config().comax.loginid : '';
-        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
+        const loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
+        const loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
 
-        const operation = `https://ws.comax.co.il/Comax_WebServices/Items_Service.asmx/GetAllItemsDetailsPlusPriceListID?StoreID=3&PriceListID=1&LoginID=${loginId}&LoginPassword=${loginPassword}`;
+        const operation = `https://ws.comax.co.il/Comax_WebServices/Items_Service.asmx/GetAllItemsDetailsPlusPriceListID?StoreID=${STOREID}&PriceListID=${PRICELISTID}&LoginID=${loginId}&LoginPassword=${loginPassword}`;
         
         console.log(operation)
 
