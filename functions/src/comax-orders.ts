@@ -12,6 +12,7 @@ const PRICELISTID = 1;
 export interface IOrder {
     id: string;
     comaxDocNumber?: number;
+    comaxReciptDocNumber?: number;
     created: string;
     price: number;
     discount: number;
@@ -40,14 +41,19 @@ export class ComaxOrders {
     private db =  admin.firestore();
 
     constructor(){
-        this.loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
-        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
+        this.loginId = functions.config().comax ? functions.config().comax.loginid : '';
+        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
     }
 
     getOrderById(id: string) {
         return this.db.doc(`orders/${ id }`).get().then(result=>{
             return <IOrder>result.data();
         });
+    }
+
+    updateOrderRecipt(order: IOrder, comaxReciptDocNumber: number){
+        order.comaxReciptDocNumber = comaxReciptDocNumber;
+        return this.db.doc(`orders/${ order.id }`).update(order);
     }
 
     setOrder(order: IOrder){
@@ -163,12 +169,12 @@ export class ComaxOrders {
 
         console.log(operation)
         return rp(operation).then((result)=>{
-            console.log(result);
             const parsedResult: any = parser.toJson(result,{
                 object: true
             });
             console.log(parsedResult);
-            return parsedResult.ClsCustomersOrders.DocNumber;
+            const docNumber = parsedResult.ClsTaxReceiptInvoiceSales.DocNumber;
+            return this.updateOrderRecipt(order, docNumber);
         });
     }
 

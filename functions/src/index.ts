@@ -76,6 +76,7 @@ admin.initializeApp();
       const orderId = data;
       const comaxOrders = new ComaxOrders();
       comaxOrders.getOrderById(orderId).then(order=>{
+         order.id = orderId;
          const result = comaxOrders.setRecipt(order);
          console.log(result);
          return result;
