@@ -124,7 +124,7 @@ export class ComaxCustomers{
             ClubCustomer: false,
             ExportCustomer: customer.isExport,
             ForeignCurrency: customer.isExport,
-            TaxExempt: '',
+            TaxExempt: customer.isExport,
             NotSendEmail: '',
             NotSendSMS: '',
             Currency: this.toComaxCurrency(customer),

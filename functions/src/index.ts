@@ -7,8 +7,32 @@ import { CurrencyExchange } from './currency-exchange';
 
 admin.initializeApp();
 
- export const helloWorld = functions.https.onRequest((request, response) => {
-  response.send("Hello from Firebase!");
+
+ // On sign up.
+exports.processSignUp = functions.auth.user().onCreate((user) => {
+   // Check if user meets role criteria.
+   const whitelist = ['ytuvia@gmail.com', 'sefadtalit@gmail.com', 'gallerycanaan@gmail.com', 'feldmano@gmail.com'];
+   if (user.email &&
+       user.emailVerified &&
+       whitelist.includes(user.email)) {
+     const customClaims = {
+       whitelist: true
+     };
+     // Set custom user claims on this newly created user.
+     return admin.auth().setCustomUserClaims(user.uid, customClaims)
+       .then(() => {
+         // Update real-time database to notify client to force refresh.
+         const metadataRef = admin.database().ref("metadata/" + user.uid);
+         // Set the refresh time to the current UTC timestamp.
+         // This will be captured on the client to force a token refresh.
+         return metadataRef.set({refreshTime: new Date().getTime()});
+       })
+       .catch(error => {
+         console.log(error);
+       });
+   }else {
+      return false;
+   }
  });
 
  export const syncCustomers = functions.https.onRequest((request, response) => {
@@ -23,7 +47,7 @@ admin.initializeApp();
 
  export const syncItems = functions.https.onRequest((request, response) => {
     const comaxItems = new ComaxItems();
-    comaxItems.syncItems().then((result)=>{
+    return comaxItems.syncItems().then((result)=>{
        response.send(result);
     }).catch((err)=>{
        console.log(err);
@@ -50,7 +74,7 @@ admin.initializeApp();
     export const setOrderReceipt = functions.https.onCall((data, context) => {
       const order = data;
       const comaxOrders = new ComaxOrders();
-      comaxOrders.setRecipt(order).then((result)=>{
+      return comaxOrders.setRecipt(order).then((result)=>{
          return result;
       });
    });
@@ -75,7 +99,7 @@ admin.initializeApp();
    export const testOrder = functions.https.onCall((data, context)=>{
       const orderId = data;
       const comaxOrders = new ComaxOrders();
-      comaxOrders.getOrderById(orderId).then(order=>{
+      return comaxOrders.getOrderById(orderId).then(order=>{
          order.id = orderId;
          const result = comaxOrders.setRecipt(order);
          console.log(result);

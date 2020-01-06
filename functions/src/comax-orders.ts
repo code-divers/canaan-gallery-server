@@ -41,8 +41,8 @@ export class ComaxOrders {
     private db =  admin.firestore();
 
     constructor(){
-        this.loginId = functions.config().comax ? functions.config().comax.loginid : '';
-        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : '';
+        this.loginId = functions.config().comax ? functions.config().comax.loginid : 'GALE1234G';
+        this.loginPassword = functions.config().comax ? functions.config().comax.loginpassword : 'G8585G';
     }
 
     getOrderById(id: string) {
@@ -52,8 +52,9 @@ export class ComaxOrders {
     }
 
     updateOrderRecipt(order: IOrder, comaxReciptDocNumber: number){
-        order.comaxReciptDocNumber = comaxReciptDocNumber;
-        return this.db.doc(`orders/${ order.id }`).update(order);
+        return this.db.doc(`orders/${ order.id }`).update({
+            comaxReciptDocNumber: comaxReciptDocNumber
+        });
     }
 
     setOrder(order: IOrder){
@@ -128,44 +129,49 @@ export class ComaxOrders {
     setRecipt(order: IOrder){
         const params = {
             CustomerID: order.customer.id,
-            StoreID: STOREID,
-            BranchID: BRANCHID,
-            PriceListID: PRICELISTID,
-            AgentID: '',
-            Remarks: '',
-            Details: '',
-            Reference: '',
-            OrderNumber: order.comaxDocNumber,
-            GetOrderData: 0,
             DateDoc: '',
             ReferenceDate: '',
             PaymentDate: '',
+            StoreID: STOREID,
+            SalesAccountID: '',
+            PriceListID: PRICELISTID,
+            AgentID: '',
+            DocNumber: '',
+            Reference: '',
+            Remarks: '',
+            Details: '',
+            BranchID: BRANCHID,
             CustomerName: order.customer.name,
             CustomerAddress: this.buildComaxAddress(order),
             CustomerCity: order.customer.city,
             CustomerPhone: order.customer.phone,
             CustomerZip: order.customer.zipcode,
-            CustomerIDCard: '',
-            SendCredit: '',
-            CreditPaysNumber: '',
-            CreditCompany: '',
-            CreditTransactionType: '',
-            CreditExpireDate: '',
-            CreditCardNumber: '',
-            CreditTokenNumber: '',
-            CreditCVV: '',
-            CreditTZ: '',
-            OrderItemsSupplierID: '',
-            SupplierDirectDelivery: '',
-            SendPDFToSupplier: '',
-            ClubCustomerId: '',
+            CustomerDiscountPercent: '',
+            DeliveryDate: '',
+            DeliveryHourFrom: '',
+            DeliveryHourTo: '',
+            DeliveryAddress: this.buildComaxAddress(order),
+            DeliveryAddressNumber: '',
+            DeliveryCity: order.customer.city,
+            DeliveryZip: order.customer.zipcode,
+            DeliveryContactMan: order.customer.name,
+            DeliveryRemark: '',
+            DeliveryFloor: '',
+            DeliveryFlat: '',
+            DeliveryTelephone: order.customer.phone,
+            DeliveryTelephone2: '',
+            DeliveryEmail: order.customer.email,
+            DeliveryType: 'Empty',
+            OrderNumber: order.comaxDocNumber,
+            OrderYear: '',
+            SetItemPriceByOrder: false,
             LoginID: this.loginId,
             LoginPassword: this.loginPassword
         }
         
         const list = this.buildComaxOrderItems(order);
         
-        const operation = 'http://ws.comax.co.il/Comax_WebServices/TaxReceiptInvoiceSales.asmx/WriteTaxReceiptInvoiceSalesByParams?' + querystring.stringify(params) + list.items + list.quantities + list.prices + list.discountPercents + list.totalSums + list.itemsRemarks + list.promoIDs + list.promoRanks;
+        const operation = 'http://ws.comax.co.il/Comax_WebServices/TaxInvoiceSales.asmx/WriteTaxInvoiceSalesByParams?' + querystring.stringify(params) + list.items + list.quantities + list.prices + list.discountPercents + list.totalSums + list.itemsRemarks + list.promoIDs + list.promoRanks;
 
         console.log(operation)
         return rp(operation).then((result)=>{
@@ -173,8 +179,10 @@ export class ComaxOrders {
                 object: true
             });
             console.log(parsedResult);
-            const docNumber = parsedResult.ClsTaxReceiptInvoiceSales.DocNumber;
-            return this.updateOrderRecipt(order, docNumber);
+            const docNumber = parsedResult.ClsTaxInvoiceSales.DocNumber;
+            return this.db.doc(`orders/${ order.id }`).update({
+                comaxReciptDocNumber: docNumber
+            });
         });
     }
 
@@ -241,7 +249,7 @@ export class ComaxOrders {
             list.quantities+= `&Quantity=${item.quantity}`;
             list.prices += `&Price=${item.price}`;
             list.discountPercents += `&DiscountPercent=${item.discount}`;
-            list.totalSums += `&TotalSum=${item.price * item.quantity}`;
+            list.totalSums += `&TotalSum=${item.discountedPrice * item.quantity}`;
             list.itemsRemarks += `&ItemRemarks=${this.buildComaxComment(item)}`;
             list.promoIDs += `&PromoID=`;
             list.promoRanks += `&PromoRank=`;
